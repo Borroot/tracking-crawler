@@ -36,7 +36,7 @@ def read_lines_of_file(file_path):
     return lines
 
 
-def deny_cookies(playwright, url): 
+def deny_trackers(playwright, url): 
     browser = playwright.chromium.launch(headless=False, slow_mo=50)
     context = browser.new_context()
     sanitized_url = sanitize_url(url)
@@ -103,14 +103,12 @@ def main():
     with sync_playwright() as playwright:
         # Browser part, we should do this for every nl_gov_sites/url there is
 
-        # Maybe random user agent? Maybe need the same one for accepting/denying because the website may act differently on the user-agent
-
         # To debug and just use 1 website
         nl_gov_sites = ["https://playwright.dev"]
         print(url)
         for url in tqdm(nl_gov_sites):
             # Once for denying cookies
-            deny_cookies(playwright, url)
+            deny_trackers(playwright, url)
 
             # Once for accepting cookies
             accept_cookies(playwright, url)
