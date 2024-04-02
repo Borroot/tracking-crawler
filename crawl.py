@@ -3,6 +3,7 @@ from playwright.sync_api import sync_playwright
 import re
 from tqdm import tqdm
 from tld import get_fld
+import json
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Crawler with options')
@@ -57,6 +58,18 @@ def scroll_to_bottom_in_multiple_steps(page):
         scroll_position += scroll_step
     return page
 
+def route_intercept(route, request, block_list):
+    # print(request)
+    request_url = request.url
+    for tracker in block_list:
+        # print("tracker:", tracker, "\n")
+        # print("request url:", request_url, "\n")
+        if tracker in request_url:
+            print(f"Blocking request to {request_url}")
+            return route.abort()
+    return route.continue_()
+
+
 def crawler(playwright, url, debug, block_trackers):
     browser = playwright.chromium.launch(headless=False, slow_mo=50)
     context = browser.new_context()
@@ -76,6 +89,24 @@ def crawler(playwright, url, debug, block_trackers):
 
     # Somehow we have to save all the network traffic as HAR file. The assignment says use internal HAR recording feature of playwright, I cannot find it
 
+
+    # If block_trackers is True, then we block the tracker requests here.
+    if block_trackers:
+        # create block list
+        with open("utils/services.json", "r", encoding="utf-8") as f:
+            blocklist_data = json.load(f)
+        block_list = []
+        for category in blocklist_data['categories']['Email']:
+            for key, value in category.items():
+                if isinstance(value, dict):
+                    for inner_key, domain in value.items():
+                        if isinstance(domain, list):
+                            block_list.extend(domain)
+            
+
+        page.route("**/*", lambda route, request: route_intercept(route, request, block_list))
+
+
     page.goto(url)
     # Wait 10s
     if debug:
@@ -90,7 +121,7 @@ def crawler(playwright, url, debug, block_trackers):
         print("Accepting all cookies")
     page, found_accept_button = accept_cookie(page)
 
-    # If block_trackers is True, then we block the tracker requests here.
+    # We need the cookies one day probably
     cookies = context.cookies()
 
     # Screenshot of the page after accepting cookies
