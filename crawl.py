@@ -35,7 +35,23 @@ def read_lines_of_file(file_path):
             lines.append(line.strip())
     return lines
 
-def accept_cookies(playwright, url, debug):
+def accept_cookie(page):
+    accept_words = []
+    
+    with open("utils/accept_words.txt", 'r', encoding="utf-8") as file:
+        for line in file:
+            accept_words.append(line.strip())
+
+    for word in accept_words:
+        accept_button = page.query_selector(f'button:has-text("{word}")')
+        if accept_button:
+            accept_button.click()
+            break
+
+    return page
+
+
+def accept_cookies_flow(playwright, url, debug):
     browser = playwright.chromium.launch(headless=False, slow_mo=50)
     context = browser.new_context()
     sanitized_url = sanitize_url(url)
@@ -56,6 +72,7 @@ def accept_cookies(playwright, url, debug):
     if debug:
         print("Accepting all cookies")
         # TODO: Implement this
+    page = accept_cookie(page)
 
     # wait 3s
     if debug:
@@ -79,7 +96,7 @@ def accept_cookies(playwright, url, debug):
     browser.close()
     return "TODO"
 
-def deny_trackers(playwright, url, debug): 
+def deny_trackers_flow(playwright, url, debug): 
     browser = playwright.chromium.launch(headless=False, slow_mo=50)
     context = browser.new_context()
     sanitized_url = sanitize_url(url)
@@ -129,7 +146,7 @@ def deny_trackers(playwright, url, debug):
 
 
 def main():
-    # python crawl.py -u "https://playwright.dev" --debug
+    # python crawl.py -u "https://business.gov.nl/" --debug
     # Gather arguments in variables
     block_trackers, url, file_path, debug = parse_arguments()
     urls = []
@@ -146,10 +163,10 @@ def main():
         print(url)
         for url_loop in tqdm(urls):
             # Once for accepting cookies
-            accept_cookies(playwright, url_loop, debug)
+            accept_cookies_flow(playwright, url_loop, debug)
 
             # Once for denying cookies
-            deny_trackers(playwright, url_loop, debug)
+            deny_trackers_flow(playwright, url_loop, debug)
 
 
 
