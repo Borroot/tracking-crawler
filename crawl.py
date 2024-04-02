@@ -51,11 +51,14 @@ def accept_cookie(page):
     return page
 
 
-def accept_cookies_flow(playwright, url, debug):
+def crawler(playwright, url, debug, block_trackers):
     browser = playwright.chromium.launch(headless=False, slow_mo=50)
     context = browser.new_context()
     sanitized_url = sanitize_url(url)
-    record_video_dir = "videos/"+sanitized_url+"/accept/"
+    if block_trackers:
+        record_video_dir = "videos/"+sanitized_url+"/deny/"
+    else:
+        record_video_dir = "videos/"+sanitized_url+"/accept/"
     context = browser.new_context(
     record_video_dir=record_video_dir,
     record_video_size={"width": 640, "height": 480}
@@ -66,7 +69,7 @@ def accept_cookies_flow(playwright, url, debug):
     # Wait 10s
     if debug:
         print("Waiting for 10 seconds")
-    page.wait_for_timeout(3000)
+    page.wait_for_timeout(3000) # Change to 10s later
 
     # Accept all cookies
     if debug:
@@ -74,6 +77,9 @@ def accept_cookies_flow(playwright, url, debug):
         # TODO: Implement this
     page = accept_cookie(page)
 
+    # If block_trackers is True, then we block the tracker requests here.
+    cookies = context.cookies()
+
     # wait 3s
     if debug:
         print("Waiting for 3 seconds")
@@ -95,54 +101,6 @@ def accept_cookies_flow(playwright, url, debug):
     
     browser.close()
     return "TODO"
-
-def deny_trackers_flow(playwright, url, debug): 
-    browser = playwright.chromium.launch(headless=False, slow_mo=50)
-    context = browser.new_context()
-    sanitized_url = sanitize_url(url)
-    record_video_dir = "videos/"+sanitized_url+"/deny/"
-    context = browser.new_context(
-    record_video_dir=record_video_dir,
-    record_video_size={"width": 640, "height": 480}
-    )
-    page = context.new_page()
-    
-    page.goto(url)
-    # Wait 10s
-    if debug:
-        print("Waiting for 10 seconds")
-    page.wait_for_timeout(3000)
-
-    # Accept all cookies, but block the trackers from the services.json list
-    if debug:
-        print("Accepting all cookies and blocking trackers")
-    # TODO: Implement this
-
-
-    # wait 3s
-    if debug:
-        print("Waiting for 3 seconds")
-    page.wait_for_timeout(3000)
-
-    # Scroll all the way down, in multiple steps
-    if debug:
-        print("Scrolling all the way down")
-    # TODO: Implement this
-
-    # wait 3s
-    if debug:
-        print("Waiting for 3 seconds")
-    page.wait_for_timeout(3000)
-
-    # Close the page
-
-    context.close()
-    
-    browser.close()
-    return "TODO"
-
-
-
 
 
 def main():
@@ -163,14 +121,10 @@ def main():
         print(url)
         for url_loop in tqdm(urls):
             # Once for accepting cookies
-            accept_cookies_flow(playwright, url_loop, debug)
+            crawler(playwright, url_loop, debug, False)
 
             # Once for denying cookies
-            deny_trackers_flow(playwright, url_loop, debug)
-
-
-
-
+            crawler(playwright, url_loop, debug, True)
 
 if __name__ == "__main__":
     main()
