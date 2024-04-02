@@ -143,8 +143,6 @@ def main():
     with sync_playwright() as playwright:
         # Browser part, we should do this for every nl_gov_sites/url there is
 
-        # To debug and just use 1 website
-
         print(url)
         for url_loop in tqdm(urls):
             # Once for accepting cookies
