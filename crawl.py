@@ -2,6 +2,7 @@ import argparse
 from playwright.sync_api import sync_playwright
 import re
 from tqdm import tqdm
+from tld import get_fld
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Crawler with options')
@@ -24,10 +25,6 @@ def parse_arguments():
 
     return block_trackers, url, file_path, debug
 
-def sanitize_url(url):
-    """Sanitize the URL to make it a valid directory name."""
-    return re.sub(r"[^\w\s-]", '', url.replace("http://", "").replace("https://", "").replace("www.", "")).strip().replace("/", "_")
-
 def read_lines_of_file(file_path):
     lines = []
     with open(file_path, 'r') as file:
@@ -37,7 +34,7 @@ def read_lines_of_file(file_path):
 
 def accept_cookie(page):
     accept_words = []
-    
+    found_accept_button = False
     with open("utils/accept_words.txt", 'r', encoding="utf-8") as file:
         for line in file:
             accept_words.append(line.strip())
@@ -46,39 +43,58 @@ def accept_cookie(page):
         accept_button = page.query_selector(f'button:has-text("{word}")')
         if accept_button:
             accept_button.click()
+            found_accept_button = True
             break
 
-    return page
+    return page, found_accept_button
 
+def scroll_to_bottom_in_multiple_steps(page):
+    max_height = page.evaluate("document.body.scrollHeight")
+    scroll_step = 200
+    scroll_position = 0
+    while scroll_position < max_height:
+        page.evaluate(f"window.scrollBy(0, {scroll_step})")
+        scroll_position += scroll_step
+    return page
 
 def crawler(playwright, url, debug, block_trackers):
     browser = playwright.chromium.launch(headless=False, slow_mo=50)
     context = browser.new_context()
-    sanitized_url = sanitize_url(url)
+    url_domain = get_fld(url)
     if block_trackers:
-        record_video_dir = "videos/"+sanitized_url+"/deny/"
+        record_video_dir = "videos/"+url_domain+"/deny/"
+        har_file_path = "har_files/" + url_domain+"/deny.har"
     else:
-        record_video_dir = "videos/"+sanitized_url+"/accept/"
+        record_video_dir = "videos/"+url_domain+"/accept/"
+        har_file_path = "har_files/" + url_domain+"/accept.har"
     context = browser.new_context(
     record_video_dir=record_video_dir,
-    record_video_size={"width": 640, "height": 480}
+    record_video_size={"width": 640, "height": 480},
+    record_har_path=har_file_path
     )
     page = context.new_page()
-    
+
+    # Somehow we have to save all the network traffic as HAR file. The assignment says use internal HAR recording feature of playwright, I cannot find it
+
     page.goto(url)
     # Wait 10s
     if debug:
         print("Waiting for 10 seconds")
     page.wait_for_timeout(3000) # Change to 10s later
 
+    # Screenshot of the page before accepting cookies
+    page.screenshot(path="screenshots/"+url_domain+"/before_accept.png")
+
     # Accept all cookies
     if debug:
         print("Accepting all cookies")
-        # TODO: Implement this
-    page = accept_cookie(page)
+    page, found_accept_button = accept_cookie(page)
 
     # If block_trackers is True, then we block the tracker requests here.
     cookies = context.cookies()
+
+    # Screenshot of the page after accepting cookies
+    page.screenshot(path="screenshots/"+url_domain+"/after_accept.png")
 
     # wait 3s
     if debug:
@@ -88,17 +104,16 @@ def crawler(playwright, url, debug, block_trackers):
     # Scroll all the way down, in multiple steps
     if debug:
         print("Scrolling all the way down")
-        # TODO: Implement this
+    page = scroll_to_bottom_in_multiple_steps(page)
 
     # wait 3s
     if debug:
         print("Waiting for 3 seconds")
     page.wait_for_timeout(3000)
 
-    # Close the page
 
+    # Close the page
     context.close()
-    
     browser.close()
     return "TODO"
 
@@ -114,6 +129,67 @@ def main():
 
     if url is not None:
         urls = [url]
+
+    # We want to track a lot of things for our analysis
+    # page load times
+    page_load_times_allow = []
+    page_load_times_block = []
+
+    # number of requests
+    number_of_requests_allow = []
+    number_of_requests_block = []
+
+    # number of distinct third-party domains
+    number_of_third_party_domains_allow = []
+    number_of_third_party_domains_block = []
+
+    # number of distinct tracker domains
+    number_of_tracker_domains_allow = []
+    number_of_tracker_domains_block = []
+
+    # number of distinct third-party domains that set a cookie with SameSite=None and without the Partitioned attribute
+    number_of_third_party_domains_set_cookie_allow = []
+    number_of_third_party_domains_set_cookie_block = []
+
+    # number of get requests
+    number_of_get_requests_allow = []
+    number_of_get_requests_block = []
+
+    # number of post requests
+    number_of_post_requests_allow = []
+    number_of_post_requests_block = []
+
+    # We also want to analyze the Permissions-Policy headers for:
+    # disable access to camera for all parties
+    disable_camera_allow = []
+    disable_camera_block = []
+
+    # disable access to geolocation
+    disable_geolocation_allow = []
+    disable_geolocation_block = []
+
+    # disable microphone for all parties
+    disable_microphone_allow = []
+    disable_microphone_block = []
+
+    # We also want to analyze the Referrer-Policy headers for:
+    # websites that use no-referrer
+    no_referrer_allow = []
+    no_referrer_block = []
+
+    # websites that use the unsafe-url
+    unsafe_url_allow = []
+    unsafe_url_block = []
+
+    # We should also analyze the Accept-CH headers
+    # make a list of 3 high-entropy client hints that are requested on most websites:
+    
+    # TODO: No idea what they exactly want here
+
+    # The three most prevalent distinct cross-domain http redirection pairs.
+    # source domain -> target domain -> number of distinct websites
+    # TODO: Not sure how to order this
+
 
     with sync_playwright() as playwright:
         # Browser part, we should do this for every nl_gov_sites/url there is
