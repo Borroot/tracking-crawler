@@ -1,6 +1,7 @@
 import argparse
 from playwright.sync_api import sync_playwright
 import re
+from tqdm import tqdm
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Crawler with options')
@@ -107,7 +108,7 @@ def main():
         # To debug and just use 1 website
         nl_gov_sites = ["https://playwright.dev"]
         print(url)
-        for url in nl_gov_sites:
+        for url in tqdm(nl_gov_sites):
             # Once for denying cookies
             deny_cookies(playwright, url)
 
