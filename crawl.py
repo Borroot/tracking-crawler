@@ -4,6 +4,82 @@ import re
 from tqdm import tqdm
 from tld import get_fld
 import json
+import time
+import numpy as np
+
+class StatisticsCrawler:
+    def __init__(self):
+        self.stats = {
+            # page load times
+            "page_load_times_allow": [],
+            "page_load_times_block": [],
+
+            # number of requests
+            "number_of_requests_allow": [],
+            "number_of_requests_block": [],
+
+            # number of distinct third-party domains
+            "number_of_third_party_domains_allow": [],
+            "number_of_third_party_domains_block": [],
+
+            # number of distinct tracker domains
+            "number_of_tracker_domains_allow": [],
+            "number_of_tracker_domains_block": [],
+            
+            # number of distinct third-party domains that set a cookie with SameSite=None and without the Partitioned attribute
+            "number_of_third_party_domains_set_cookie_allow": [],
+            "number_of_third_party_domains_set_cookie_block": [],
+
+            # number of get requests
+            "number_of_get_requests_allow": [],
+            "number_of_get_requests_block": [],
+
+            # number of post requests
+            "number_of_post_requests_allow": [],
+            "number_of_post_requests_block": [],
+
+            # We also want to analyze the Permissions-Policy headers for:
+            # disable access to camera for all parties
+            "disable_camera_allow": [],
+            "disable_camera_block": [],
+
+            # disable access to geolocation
+            "disable_geolocation_allow": [],
+            "disable_geolocation_block": [],
+
+            # disable microphone for all parties
+            "disable_microphone_allow": [],
+            "disable_microphone_block": [],
+
+            # We also want to analyze the Referrer-Policy headers for:
+            # websites that use no-referrer
+            "no_referrer_allow": [],
+            "no_referrer_block": [],
+
+            # websites that use the unsafe-url
+            "unsafe_url_allow": [],
+            "unsafe_url_block": []
+
+            # We should also analyze the Accept-CH headers
+            # make a list of 3 high-entropy client hints that are requested on most websites:
+            
+            # TODO: No idea what they exactly want here
+
+            # The three most prevalent distinct cross-domain http redirection pairs.
+            # source domain -> target domain -> number of distinct websites
+            # TODO: Not sure how to order this
+        }
+
+
+    def update_stat(self, stat_name, block, value):
+        if block:
+            self.stats[stat_name + "_block"].append(value)
+        else:
+            self.stats[stat_name + "_allow"].append(value)
+
+
+    def get_stats(self):
+        return self.stats
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Crawler with options')
@@ -58,19 +134,22 @@ def scroll_to_bottom_in_multiple_steps(page):
         scroll_position += scroll_step
     return page
 
-def route_intercept(route, request, block_list):
-    # print(request)
+def route_intercept(route, request, block_list, debug, stats_crawler, block_trackers):
+    # We will update the amount of requests here
+    stats_crawler.update_stat("number_of_requests", block_trackers, 1)
+
+    # Checking whether the request is in the block list
     request_url = request.url
     for tracker in block_list:
-        # print("tracker:", tracker, "\n")
-        # print("request url:", request_url, "\n")
         if tracker in request_url:
-            print(f"Blocking request to {request_url}")
+            if debug:
+                domain_blocked_request = get_fld(request_url)
+                print(f"Blocking request to {domain_blocked_request}")
             return route.abort()
     return route.continue_()
 
 
-def crawler(playwright, url, debug, block_trackers):
+def crawler(playwright, url, debug, block_trackers, stats_crawler):
     browser = playwright.chromium.launch(headless=False, slow_mo=50)
     context = browser.new_context()
     url_domain = get_fld(url)
@@ -91,11 +170,11 @@ def crawler(playwright, url, debug, block_trackers):
 
 
     # If block_trackers is True, then we block the tracker requests here.
+    block_list = []
     if block_trackers:
         # create block list
         with open("utils/services.json", "r", encoding="utf-8") as f:
             blocklist_data = json.load(f)
-        block_list = []
         for category in blocklist_data['categories']['Email']:
             for key, value in category.items():
                 if isinstance(value, dict):
@@ -104,10 +183,19 @@ def crawler(playwright, url, debug, block_trackers):
                             block_list.extend(domain)
             
 
-        page.route("**/*", lambda route, request: route_intercept(route, request, block_list))
+    page.route("**/*", lambda route, request: route_intercept(route, request, block_list, debug, stats_crawler, block_trackers))
 
 
+
+    # Start tracking time so we can use it for load times
+    start_time = time.time()
     page.goto(url)
+
+    page.wait_for_load_state('load')
+    end_time = time.time()
+    page_load_time = end_time - start_time
+    stats_crawler.update_stat("page_load_times", block_trackers, page_load_time)
+
     # Wait 10s
     if debug:
         print("Waiting for 10 seconds")
@@ -146,92 +234,44 @@ def crawler(playwright, url, debug, block_trackers):
     # Close the page
     context.close()
     browser.close()
-    return "TODO"
+    return
 
 
 def main():
     # python crawl.py -u "https://business.gov.nl/" --debug
+    # python crawl.py -l "/utils/nl-gov-sites.txt" --debug
     # Gather arguments in variables
     block_trackers, url, file_path, debug = parse_arguments()
     urls = []
-    # All the url's we will visit
+
+    # We will use the file path if it is provided
     if file_path is not None:
         urls = read_lines_of_file(file_path)
 
+    # We will use the url if it is provided, if a file is also provided we just ignore it
     if url is not None:
         urls = [url]
 
-    # We want to track a lot of things for our analysis
-    # page load times
-    page_load_times_allow = []
-    page_load_times_block = []
-
-    # number of requests
-    number_of_requests_allow = []
-    number_of_requests_block = []
-
-    # number of distinct third-party domains
-    number_of_third_party_domains_allow = []
-    number_of_third_party_domains_block = []
-
-    # number of distinct tracker domains
-    number_of_tracker_domains_allow = []
-    number_of_tracker_domains_block = []
-
-    # number of distinct third-party domains that set a cookie with SameSite=None and without the Partitioned attribute
-    number_of_third_party_domains_set_cookie_allow = []
-    number_of_third_party_domains_set_cookie_block = []
-
-    # number of get requests
-    number_of_get_requests_allow = []
-    number_of_get_requests_block = []
-
-    # number of post requests
-    number_of_post_requests_allow = []
-    number_of_post_requests_block = []
-
-    # We also want to analyze the Permissions-Policy headers for:
-    # disable access to camera for all parties
-    disable_camera_allow = []
-    disable_camera_block = []
-
-    # disable access to geolocation
-    disable_geolocation_allow = []
-    disable_geolocation_block = []
-
-    # disable microphone for all parties
-    disable_microphone_allow = []
-    disable_microphone_block = []
-
-    # We also want to analyze the Referrer-Policy headers for:
-    # websites that use no-referrer
-    no_referrer_allow = []
-    no_referrer_block = []
-
-    # websites that use the unsafe-url
-    unsafe_url_allow = []
-    unsafe_url_block = []
-
-    # We should also analyze the Accept-CH headers
-    # make a list of 3 high-entropy client hints that are requested on most websites:
-    
-    # TODO: No idea what they exactly want here
-
-    # The three most prevalent distinct cross-domain http redirection pairs.
-    # source domain -> target domain -> number of distinct websites
-    # TODO: Not sure how to order this
-
+    # Create a statistics crawler
+    stats_crawler = StatisticsCrawler()
 
     with sync_playwright() as playwright:
-        # Browser part, we should do this for every nl_gov_sites/url there is
-
-        print(url)
+        # Two crawlers for every url, one with blocking trackers and one without
+        if debug:
+            print("visiting: ", url, " with and without blocking trackers")
         for url_loop in tqdm(urls):
-            # Once for accepting cookies
-            crawler(playwright, url_loop, debug, False)
+            # Once for allowing trackers
+            crawler(playwright, url_loop, debug, False, stats_crawler)
 
-            # Once for denying cookies
-            crawler(playwright, url_loop, debug, True)
-
+            # Once for blocking trackers
+            crawler(playwright, url_loop, debug, True, stats_crawler)
+        
+    # Getting all of the statistics we will use for the analysis
+    stats = stats_crawler.get_stats()
+    print("reload times average:", np.mean(stats["page_load_times_allow"]))
+    print("number of requests in allow:", len(stats["number_of_requests_allow"]))
+    print("number of third-party domains (not distinct yet):", len(stats["number_of_third_party_domains_allow"]))
+    print("number of tracker domains (not distinct yet):", len(stats["number_of_tracker_domains_allow"]))
+    print("number of third-party domains (not distinct yet) that set a cookie with SameSite=None and without the Partitioned attribute:", len(stats["number_of_third_party_domains_set_cookie_allow"]))
 if __name__ == "__main__":
     main()
