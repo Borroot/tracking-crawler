@@ -1,6 +1,9 @@
 abilita
 abilita tutto
 accept
+toestaan
+stem in
+akkoord
 accept & close
 accept & continue
 accept & proceed
