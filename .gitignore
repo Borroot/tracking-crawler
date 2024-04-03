@@ -1,7 +1,4 @@
 __pycache__/
 ./pytest_cache/
-videos/
-output.txt
-har_files/
-response_output.txt
-screenshots/
+crawl_data_allow/
+crawl_data_block/

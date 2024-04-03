@@ -127,7 +127,7 @@ def block_tracker_requests(route, request, block_list, debug):
     return route.continue_()
 
 def crawler(playwright, url, debug, block_trackers, stats_crawler, url_index):
-    browser = playwright.chromium.launch(headless=False, slow_mo=50) # Can do headless=False/True
+    browser = playwright.chromium.launch(headless=True, slow_mo=50) # Can do headless=False/True
     context = browser.new_context()
     url_domain = get_fld(url)
     if block_trackers:
@@ -208,14 +208,13 @@ def crawler(playwright, url, debug, block_trackers, stats_crawler, url_index):
         new_video_path = os.path.dirname(video_path) + "\\" + url_domain +"_block.webm"
     else:
         new_video_path = os.path.dirname(video_path) + "\\" + url_domain +"_allow.webm"
-    os.rename(video_path, new_video_path)
+    os.replace(video_path, new_video_path)
     return
 
 
 def main():
     # python crawl.py -u "https://business.gov.nl/" --debug --block-trackers
-    # python crawl.py -l utils/2-websites.txt --debug --block-trackers
-    # python crawl.py -l "utils/nl-gov-sites.txt" --debug --block-trackers
+    # python crawl.py -l "../utils/nl-gov-sites.txt" --debug --block-trackers
     # Gather arguments in variables
     block_trackers, url, file_path, debug = parse_arguments()
     urls = []
@@ -240,15 +239,17 @@ def main():
             # Once for allowing trackers
             try:
                 crawler(playwright, url_loop, debug, False, stats_crawler, url_index)
-            except:
-                print("failed to crawl page:", url_loop)
+            except Exception as e:
+                print("Failed to crawl page:", url_loop)
+                print("Error:", e)
 
             # Once for blocking trackers
             if block_trackers:
                 try:
                     crawler(playwright, url_loop, debug, True, stats_crawler, url_index)
-                except:
-                    print("failed to crawl page:", url_loop)
+                except Exception as e:
+                    print("Failed to crawl page:", url_loop)
+                    print("Error:", e)
         
 
     # Getting some statistics that cannot be retrieved from the har files
