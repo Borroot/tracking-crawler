@@ -12,6 +12,9 @@ import numpy as np
 class StatisticsCrawler:
     def __init__(self, amount_of_urls):
         self.stats = {
+            "time_out":  [],
+            "failed_to_find_accept": [],
+
             # page load times
             "page_load_times_allow": [[] for _ in range(amount_of_urls)],
             "page_load_times_block": [[] for _ in range(amount_of_urls)],
@@ -21,17 +24,17 @@ class StatisticsCrawler:
             "number_of_requests_block": [0 for _ in range(amount_of_urls)],
 
             # third-party domains
-            "third_party_domains_allow": [[] for _ in range(amount_of_urls)],
-            "third_party_domains_block": [[] for _ in range(amount_of_urls)],
+            "third_party_domains_allow": [set() for _ in range(amount_of_urls)],
+            "third_party_domains_block": [set() for _ in range(amount_of_urls)],
 
             # tracker domains
-            "tracker_domains_allow": [[] for _ in range(amount_of_urls)],
-            "tracker_domains_block": [[] for _ in range(amount_of_urls)],
+            "tracker_domains_allow": [set() for _ in range(amount_of_urls)],
+            "tracker_domains_block": [set() for _ in range(amount_of_urls)],
             
             # third-party domains that set a cookie with SameSite=None and
             # without the Partitioned attribute
-            "third_party_domains_set_cookie_allow": [[] for _ in range(amount_of_urls)],
-            "third_party_domains_set_cookie_block": [[] for _ in range(amount_of_urls)],
+            "third_party_domains_set_cookie_allow": [set() for _ in range(amount_of_urls)],
+            "third_party_domains_set_cookie_block": [set() for _ in range(amount_of_urls)],
 
             # number of get requests
             "number_of_get_requests_allow": [0 for _ in range(amount_of_urls)],
@@ -43,36 +46,40 @@ class StatisticsCrawler:
 
             # Permissions-Policy headers
             # disable access to camera for all parties
-            "disable_camera_allow": [[] for _ in range(amount_of_urls)],
-            "disable_camera_block": [[] for _ in range(amount_of_urls)],
+            "disable_camera_allow": [set() for _ in range(amount_of_urls)],
+            "disable_camera_block": [set() for _ in range(amount_of_urls)],
 
             # disable access to geolocation
-            "disable_geolocation_allow": [[] for _ in range(amount_of_urls)],
-            "disable_geolocation_block": [[] for _ in range(amount_of_urls)],
+            "disable_geolocation_allow": [set() for _ in range(amount_of_urls)],
+            "disable_geolocation_block": [set() for _ in range(amount_of_urls)],
 
             # disable microphone for all parties
-            "disable_microphone_allow": [[] for _ in range(amount_of_urls)],
-            "disable_microphone_block": [[] for _ in range(amount_of_urls)],
+            "disable_microphone_allow": [set() for _ in range(amount_of_urls)],
+            "disable_microphone_block": [set() for _ in range(amount_of_urls)],
 
             # Referrer-Policy headers
             # websites that use no-referrer
-            "no_referrer_allow": [[] for _ in range(amount_of_urls)],
-            "no_referrer_block": [[] for _ in range(amount_of_urls)],
+            "no_referrer_allow": [set() for _ in range(amount_of_urls)],
+            "no_referrer_block": [set() for _ in range(amount_of_urls)],
 
             # websites that use the unsafe-url
-            "unsafe_url_allow": [[] for _ in range(amount_of_urls)],
-            "unsafe_url_block": [[] for _ in range(amount_of_urls)]
+            "unsafe_url_allow": [set() for _ in range(amount_of_urls)],
+            "unsafe_url_block": [set() for _ in range(amount_of_urls)],
 
             # We should also analyze the Accept-CH headers
             # make a list of 3 high-entropy client hints that are requested on most websites:
             
-            # TODO: No idea what they exactly want here
+            "accept-ch_allow": [[] for _ in range(amount_of_urls)],
+            "accept-ch_block": [[] for _ in range(amount_of_urls)],
 
             # The three most prevalent distinct cross-domain http redirection pairs.
             # source domain -> target domain -> number of distinct websites
-            # TODO: Not sure how to order this
+            "redirect_pairs_allow": [[] for _ in range(amount_of_urls)],
+            "redirect_pairs_block": [[] for _ in range(amount_of_urls)]\
+            
         }
-
+    def update_stat_single(self, stat_name, value):
+        self.stats[stat_name].append(value)
 
     def update_stat(self, stat_name, block, value, url_index):
         if block:
@@ -85,6 +92,12 @@ class StatisticsCrawler:
             self.stats[stat_name + "_block"][url_index] += value
         else:
             self.stats[stat_name + "_allow"][url_index] += value
+
+    def update_stat_set(self, stat_name, block, value, url_index):
+        if block:
+            self.stats[stat_name + "_block"][url_index].add(value)
+        else:
+            self.stats[stat_name + "_allow"][url_index].add(value)
 
     def get_stats(self):
         return self.stats
@@ -119,9 +132,9 @@ def read_lines_of_file(file_path):
     return lines
 
 # To find the accept button on the page using a file, and attempt to click it
-def accept_cookie(page, debug):
+def accept_cookie(page, debug, stats_crawler, url):
     accept_words = []
-    found_accept_button = False
+    found_accept_button_or_link = False
     with open("utils/accept_words.txt", 'r', encoding="utf-8") as file:
         for line in file:
             accept_words.append(line.strip())
@@ -130,10 +143,10 @@ def accept_cookie(page, debug):
         # Check for button with text containing the accept word
         accept_button = page.query_selector(f'button:has-text("{word}")')
         if accept_button:
+            found_accept_button_or_link = True
             if debug:
                 print("found button with word:", word)
             accept_button.click()
-            found_accept_button = True
             break
         
         # Some cookie accept buttons are not actual buttons but just links...abs
@@ -142,13 +155,15 @@ def accept_cookie(page, debug):
         # Check for link with text containing the accept word
         accept_link = page.query_selector(f'a:has-text("{word}")')
         if accept_link:
+            found_accept_button_or_link = True
             if debug:
                 print("found link with word:", word)
             accept_link.click()
-            found_accept_button = True
             break
-
-    return page, found_accept_button
+    if found_accept_button_or_link == False:
+        domain_of_url = get_fld(url)
+        stats_crawler.update_stat_single("failed_to_find_accept", domain_of_url)
+    return page
 
 # Scroll to the bottom based on the max_height, not every website shows the full height, so scroll a little more
 def scroll_to_bottom_in_multiple_steps(page):
@@ -183,13 +198,30 @@ def response_inspect(response, block_list, debug, stats_crawler, block_trackers,
     partitioned_set = True
     # We want to find all the third-party domains that set a cookie with SameSite=None and without the Partitioned attribute
     for header_name, header_value in headers.items():
+        print(header_name, header_value)
         if header_name == "Set-Cookie":
             cookie_set = True
         if "Partitioned" in header_name:
             partitioned_set = False
-    
+        if header_name == "permissions-policy": # * is allowed, () is not allowed, example: permissions-policy: accelerometer=(),autoplay=(*),camera=(),ch-ua=(self),ch-ua-arch=(self),ch-ua-bitness=(self),ch-ua-full-version=(self),ch-ua-full-version-list=(self),ch-ua-mobile=(self),ch-ua-model=(self),ch-ua-platform=(self),ch-ua-platform-version=(self),ch-ua-wow64=(self),display-capture=(self),encrypted-media=(*),fullscreen=(*),geolocation=(),gyroscope=(),hid=(),idle-detection=(),keyboard-map=(),magnetometer=(),microphone=(),midi=(),payment=(),picture-in-picture=(self),publickey-credentials-get=(),screen-wake-lock=(self),serial=(),sync-xhr=(*),usb=()
+            if "camera=()" in header_value:
+                stats_crawler.update_stat_set("disable_camera", block_trackers, domain_of_response_url, url_index)
+            if "geolocation=()" in header_value:
+                stats_crawler.update_stat_set("disable_geolocation", block_trackers, domain_of_response_url, url_index)
+            if "microphone=()" in header_value:
+                stats_crawler.update_stat_set("disable_microphone", block_trackers, domain_of_response_url, url_index)
+        if header_name == "referrer-policy":
+            if "no-referrer" in header_value: # so including "no-referrer-when-downgrade"
+                stats_crawler.update_stat_set("no_referrer", block_trackers, domain_of_response_url, url_index)
+            if "unsafe-url" in header_value:
+                stats_crawler.update_stat_set("unsafe_url", block_trackers, domain_of_response_url, url_index)
+        if header_name == "accept-ch":
+            accept_ch_values = header_value.split(", ")
+            stats_crawler.update_stat("accept-ch", block_trackers, accept_ch_values, url_index)
+
+
     if (cookie_set == True) and (partitioned_set == False):
-        stats_crawler.update_stat("third_party_domains_set_cookie", block_trackers, domain_of_response_url, url_index)
+        stats_crawler.update_stat_set("third_party_domains_set_cookie", block_trackers, domain_of_response_url, url_index)
             
 def request_inspect(request, block_list, debug, stats_crawler, block_trackers, url_index, first_party_url):
     request_url = request.url
@@ -205,11 +237,11 @@ def request_inspect(request, block_list, debug, stats_crawler, block_trackers, u
     if domain_of_request_url != first_party_domain:
         is_third_party = True
         if is_third_party:
-            stats_crawler.update_stat("third_party_domains", block_trackers, domain_of_request_url, url_index)
+            stats_crawler.update_stat_set("third_party_domains", block_trackers, domain_of_request_url, url_index)
 
     # We want to find all the tracker domains. It will be a list of all the distinct domains per url
     if domain_of_request_url in block_list:
-        stats_crawler.update_stat("tracker_domains", block_trackers, domain_of_request_url, url_index)
+        stats_crawler.update_stat_set("tracker_domains", block_trackers, domain_of_request_url, url_index)
         
     # We want to update the number of get requests
     if request.method == 'GET':
@@ -279,9 +311,10 @@ def crawler(playwright, url, debug, block_trackers, stats_crawler, url_index):
     if debug:
         print("Finding accept cookies button")
     try:
-        page, found_accept_button = accept_cookie(page, debug)
+        page = accept_cookie(page, debug, stats_crawler, url)
     except:
         print("could not find accept button")
+        stats_crawler.update_stat_single("time_out", url_domain)
 
     # We need the cookies one day probably
     cookies = context.cookies()
@@ -347,14 +380,6 @@ def main():
     # Getting all of the statistics we will use for the analysis
     stats = stats_crawler.get_stats()
 
-    # Getting the distinct domains
-    for url in range(number_of_urls):
-        stats["third_party_domains_allow"][url] = list(np.unique(stats["third_party_domains_allow"][url]))
-        stats["third_party_domains_block"][url] = list(np.unique(stats["third_party_domains_block"][url]))
-        stats["tracker_domains_allow"][url] = list(np.unique(stats["tracker_domains_allow"][url]))
-        stats["tracker_domains_block"][url] = list(np.unique(stats["tracker_domains_block"][url]))
-        stats["third_party_domains_set_cookie_allow"][url] = list(np.unique(stats["third_party_domains_set_cookie_allow"][url]))
-        stats["third_party_domains_set_cookie_block"][url] = list(np.unique(stats["third_party_domains_set_cookie_block"][url]))
 
 
     print("reload times:", stats["page_load_times_allow"])
@@ -364,7 +389,14 @@ def main():
     print("third_party_domains_set_cookie_allow", stats["third_party_domains_set_cookie_allow"])
     print("number_of_get_requests_allow", stats["number_of_get_requests_allow"])
     print("number_of_post_requests_allow", stats["number_of_post_requests_allow"])
-
+    print("disable_camera_allow", stats["disable_camera_allow"])
+    print("disable_geolocation_allow", stats["disable_geolocation_allow"])
+    print("disable_microphone_allow", stats["disable_microphone_allow"])
+    print("no_referrer_allow", stats["no_referrer_allow"])
+    print("unsafe_url_allow", stats["unsafe_url_allow"])
+    print("accept-ch_allow", stats["accept-ch_allow"]) # list of lists, but we can just unlist the inner lists
+    print("failed_to_find_accept", stats["failed_to_find_accept"])
+    print("time_out", stats["time_out"])
 
 if __name__ == "__main__":
     main()

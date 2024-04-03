@@ -3,4 +3,5 @@ __pycache__/
 videos/
 output.txt
 har_files/
+response_output.txt
 screenshots/
