@@ -32,12 +32,7 @@ class StatisticsCrawler:
         return self.stats
 
 
-    def export_to_json(self, debug):
-        if debug:
-            print("load times:", stats["page_load_times_allow"])
-            print("failed_to_find_accept", list(stats["failed_to_find_accept"]))
-            print("time_out", list(stats["time_out"]))
-
+    def export_to_json(self):
         def convert_to_serializable(obj):
             if isinstance(obj, set):
                 return list(obj)
@@ -272,7 +267,7 @@ def main():
 
     # Getting some statistics that cannot be retrieved from the har files
     stats = stats_crawler.get_stats()
-    stats_crawler.export_to_json(debug)
+    stats_crawler.export_to_json()
 
 
 if __name__ == "__main__":
