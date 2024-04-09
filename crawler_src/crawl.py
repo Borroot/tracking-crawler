@@ -11,25 +11,21 @@ import logging as log
 class StatisticsCrawler:
     # To keep track of the statistics for the analysis
 
-    def __init__(self, amount_of_urls):
+    def __init__(self):
         self.stats = {
-            "failed_to_find_accept": set(),
-            "time_out":  set(),
-            "page_load_times_allow": [[] for _ in range(amount_of_urls)],
-            "page_load_times_block": [[] for _ in range(amount_of_urls)]
+            "consent_click_failure_allow": set(),
+            "consent_click_failure_block": set(),
+
+            "page_load_timeout_allow":  set(),
+            "page_load_timeout_block":  set(),
+
+            "page_load_times_allow": [],
+            "page_load_times_block": [],
         }
 
 
-    def update_stat_single_set(self, stat_name, value):
-        self.stats[stat_name].add(value)
-
-
-    def update_stat(self, stat_name, block, value, url_index):
-        self.stats[stat_name + '_' + accept_block(block)][url_index].append(value)
-
-
-    def get_stats(self):
-        return self.stats
+    def update_stat_single_set(self, stat_name, block, value):
+        self.stats[stat_name + '_' + allow_block(block)].add(value)
 
 
     def export_to_json(self):
@@ -83,11 +79,11 @@ def read_lines_of_file(file_path):
     return lines
 
 
-def accept_block(block):
+def allow_block(block):
     return 'block' if block else 'allow'
 
 
-def accept_cookie(page, stats_crawler, url):
+def accept_cookie(page, stats_crawler, url, block_trackers):
     # To find the accept button on the page using a file, and attempt to click it
 
     accept_words = []
@@ -119,7 +115,7 @@ def accept_cookie(page, stats_crawler, url):
     if not found_accept_button_or_link:
         log.debug("Failed to find accept button or link")
         domain_of_url = get_fld(url)
-        stats_crawler.update_stat_single_set("failed_to_find_accept", domain_of_url)
+        stats_crawler.update_stat_single_set("consent_click_failure", block_trackers, domain_of_url)
 
     return page
 
@@ -168,7 +164,7 @@ def crawler(playwright, url, block_trackers, stats_crawler, url_index):
     context = browser.new_context()
     url_domain = get_fld(url)
 
-    variant = accept_block(block_trackers)
+    variant = allow_block(block_trackers)
     record_video_dir = f"../crawl_data_{variant}/"
     har_file_path = f"../crawl_data_{variant}/{url_domain}_{variant}.har"
 
@@ -192,7 +188,9 @@ def crawler(playwright, url, block_trackers, stats_crawler, url_index):
     page.wait_for_load_state('load')
     end_time = time.time()
     page_load_time = end_time - start_time
-    stats_crawler.update_stat("page_load_times", block_trackers, page_load_time, url_index)
+
+    stats_crawler.stats['page_load_times_' + allow_block(block_trackers)].append({
+        'url': url, 'page_load_time', page_load_time})
 
     # Wait 10s
     page.wait_for_timeout(10000) # Change to 10s later
@@ -203,9 +201,9 @@ def crawler(playwright, url, block_trackers, stats_crawler, url_index):
     # Accept all cookies
     log.debug('Trying to accept cookies')
     try:
-        page = accept_cookie(page, stats_crawler, url)
+        page = accept_cookie(page, stats_crawler, url, block_trackers)
     except:
-        stats_crawler.update_stat_single_set("time_out", url_domain)
+        stats_crawler.update_stat_single_set("page_load_timeout", block_trackers, url_domain)
 
     # We need the cookies one day probably
     cookies = context.cookies()
@@ -234,7 +232,7 @@ def crawler(playwright, url, block_trackers, stats_crawler, url_index):
 
 
 def run_crawler(playwright, url, block_trackers, stats_crawler, url_index, num_urls):
-    log.debug(f'{url_index + 1}/{num_urls} Running crawler on {url} with {accept_block(block_trackers)}')
+    log.debug(f'{url_index + 1}/{num_urls} Running crawler on {url} with {allow_block(block_trackers)}')
     try:
         crawler(playwright, url, block_trackers, stats_crawler, url_index)
     except Exception as e:
@@ -250,7 +248,7 @@ def main():
     block_trackers, urls, file_path = parse_arguments()
 
     # Create a statistics crawler
-    stats_crawler = StatisticsCrawler(len(urls))
+    stats_crawler = StatisticsCrawler()
 
     with sync_playwright() as playwright:
         with tqdm.contrib.logging.logging_redirect_tqdm():
@@ -266,7 +264,6 @@ def main():
                     run_crawler(playwright, url, True, stats_crawler, url_index, len(urls))
 
     # Getting some statistics that cannot be retrieved from the har files
-    stats = stats_crawler.get_stats()
     stats_crawler.export_to_json()
 
 
