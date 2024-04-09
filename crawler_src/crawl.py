@@ -6,6 +6,7 @@ import os
 import json
 import time
 import logging as log
+import datetime
 
 
 class StatisticsCrawler:
@@ -34,7 +35,8 @@ class StatisticsCrawler:
                 return list(obj)
             return obj
 
-        with open("../analysis/stats.json", "w") as file:
+        timestamp = str(datetime.datetime.now())
+        with open(f"../analysis/stats-{timestamp}.json", "w") as file:
             json.dump(self.stats, file, indent=4, default=convert_to_serializable)
 
 
@@ -190,7 +192,7 @@ def crawler(playwright, url, block_trackers, stats_crawler, url_index):
     page_load_time = end_time - start_time
 
     stats_crawler.stats['page_load_times_' + allow_block(block_trackers)].append({
-        'url': url, 'page_load_time', page_load_time})
+        'url': url, 'page_load_time': page_load_time})
 
     # Wait 10s
     page.wait_for_timeout(10000) # Change to 10s later
