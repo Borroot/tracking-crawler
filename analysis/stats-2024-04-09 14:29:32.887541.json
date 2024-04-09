@@ -1,0 +1,470 @@
+{
+    "consent_click_failure_allow": [
+        "houseofrepresentatives.nl",
+        "rijksoverheid.nl",
+        "dsta.nl",
+        "rivm.nl",
+        "octrooigemachtigde.nl",
+        "acm.nl",
+        "duo.nl",
+        "digid.nl",
+        "nza.nl",
+        "defensie.nl",
+        "limburg.nl",
+        "nldigitalgovernment.nl",
+        "rvo.nl",
+        "eerstekamer.nl",
+        "overijssel.nl",
+        "werkenbijdeoverheid.nl",
+        "government.nl",
+        "cbs.nl",
+        "amsterdam.nl",
+        "provinciegroningen.nl",
+        "royal-house.nl",
+        "knaw.nl",
+        "belastingdienst.nl",
+        "utrecht.nl",
+        "fryslan.frl",
+        "overheid.nl",
+        "zuid-holland.nl"
+    ],
+    "consent_click_failure_block": [
+        "houseofrepresentatives.nl",
+        "rijksoverheid.nl",
+        "dsta.nl",
+        "rivm.nl",
+        "octrooigemachtigde.nl",
+        "acm.nl",
+        "duo.nl",
+        "digid.nl",
+        "nza.nl",
+        "defensie.nl",
+        "limburg.nl",
+        "nldigitalgovernment.nl",
+        "rvo.nl",
+        "eerstekamer.nl",
+        "overijssel.nl",
+        "werkenbijdeoverheid.nl",
+        "government.nl",
+        "cbs.nl",
+        "amsterdam.nl",
+        "provinciegroningen.nl",
+        "royal-house.nl",
+        "knaw.nl",
+        "belastingdienst.nl",
+        "utrecht.nl",
+        "fryslan.frl",
+        "overheid.nl",
+        "zuid-holland.nl"
+    ],
+    "page_load_timeout_allow": [
+        "investinholland.com",
+        "gelderland.nl",
+        "svb.nl",
+        "ind.nl",
+        "netherlandsworldwide.nl",
+        "studyinnl.org",
+        "museumserver.nl"
+    ],
+    "page_load_timeout_block": [
+        "investinholland.com",
+        "gelderland.nl",
+        "svb.nl",
+        "ind.nl",
+        "netherlandsworldwide.nl",
+        "studyinnl.org",
+        "museumserver.nl"
+    ],
+    "page_load_times_allow": [
+        {
+            "url": "https://www.government.nl/",
+            "page_load_time": 0.3572428226470947
+        },
+        {
+            "url": "https://business.gov.nl/",
+            "page_load_time": 0.757171630859375
+        },
+        {
+            "url": "https://investinholland.com/",
+            "page_load_time": 2.026094913482666
+        },
+        {
+            "url": "https://www.belastingdienst.nl/",
+            "page_load_time": 1.014404535293579
+        },
+        {
+            "url": "https://www.acm.nl/",
+            "page_load_time": 0.7182011604309082
+        },
+        {
+            "url": "https://english.rvo.nl/",
+            "page_load_time": 1.2972216606140137
+        },
+        {
+            "url": "https://www.nwo.nl/",
+            "page_load_time": 0.6650371551513672
+        },
+        {
+            "url": "https://www.knaw.nl/",
+            "page_load_time": 1.4810214042663574
+        },
+        {
+            "url": "https://www.octrooigemachtigde.nl/",
+            "page_load_time": 1.8076553344726562
+        },
+        {
+            "url": "https://ind.nl/",
+            "page_load_time": 0.5931904315948486
+        },
+        {
+            "url": "https://www.dnb.nl/",
+            "page_load_time": 0.6127674579620361
+        },
+        {
+            "url": "https://www.cbs.nl/",
+            "page_load_time": 0.7544736862182617
+        },
+        {
+            "url": "https://www.werk.nl/",
+            "page_load_time": 0.740478515625
+        },
+        {
+            "url": "https://www.ser.nl/",
+            "page_load_time": 1.0792779922485352
+        },
+        {
+            "url": "https://www.svb.nl/",
+            "page_load_time": 1.0560710430145264
+        },
+        {
+            "url": "https://www.uwv.nl/",
+            "page_load_time": 5.377473831176758
+        },
+        {
+            "url": "https://www.nza.nl/",
+            "page_load_time": 0.42028093338012695
+        },
+        {
+            "url": "https://www.rivm.nl/",
+            "page_load_time": 0.9695713520050049
+        },
+        {
+            "url": "https://duo.nl/",
+            "page_load_time": 0.504075288772583
+        },
+        {
+            "url": "https://www.studyinnl.org/",
+            "page_load_time": 0.49416089057922363
+        },
+        {
+            "url": "https://www.nbtc.nl/",
+            "page_load_time": 0.11601829528808594
+        },
+        {
+            "url": "https://www.government.nl/",
+            "page_load_time": 0.3720216751098633
+        },
+        {
+            "url": "https://www.museumserver.nl/",
+            "page_load_time": 1.7566478252410889
+        },
+        {
+            "url": "https://www.visitdrenthe.com/",
+            "page_load_time": 0.8305516242980957
+        },
+        {
+            "url": "https://www.defensie.nl/",
+            "page_load_time": 0.399810791015625
+        },
+        {
+            "url": "https://www.fryslan.frl/",
+            "page_load_time": 0.5236389636993408
+        },
+        {
+            "url": "https://www.gelderland.nl/",
+            "page_load_time": 1.0349013805389404
+        },
+        {
+            "url": "https://www.amsterdam.nl/",
+            "page_load_time": 0.5729391574859619
+        },
+        {
+            "url": "https://www.rotterdam.nl/",
+            "page_load_time": 0.41822099685668945
+        },
+        {
+            "url": "https://www.denhaag.nl/",
+            "page_load_time": 0.6527116298675537
+        },
+        {
+            "url": "https://www.utrecht.nl/",
+            "page_load_time": 0.7230291366577148
+        },
+        {
+            "url": "https://www.houseofrepresentatives.nl/",
+            "page_load_time": 5.673790454864502
+        },
+        {
+            "url": "https://www.eerstekamer.nl/",
+            "page_load_time": 0.3930983543395996
+        },
+        {
+            "url": "https://www.overheid.nl/",
+            "page_load_time": 1.0033204555511475
+        },
+        {
+            "url": "https://www.provinciegroningen.nl/",
+            "page_load_time": 0.44843459129333496
+        },
+        {
+            "url": "https://www.limburg.nl/",
+            "page_load_time": 0.5361349582672119
+        },
+        {
+            "url": "https://www.brabant.nl/",
+            "page_load_time": 1.3935065269470215
+        },
+        {
+            "url": "https://www.overijssel.nl/",
+            "page_load_time": 0.15045857429504395
+        },
+        {
+            "url": "https://www.provincie-utrecht.nl/",
+            "page_load_time": 0.6349043846130371
+        },
+        {
+            "url": "https://www.zeeland.nl/",
+            "page_load_time": 0.38849806785583496
+        },
+        {
+            "url": "https://www.zuid-holland.nl/",
+            "page_load_time": 0.4667065143585205
+        },
+        {
+            "url": "https://www.royal-house.nl/",
+            "page_load_time": 0.5079104900360107
+        },
+        {
+            "url": "https://www.rijksoverheid.nl/",
+            "page_load_time": 0.36416006088256836
+        },
+        {
+            "url": "https://www.werkenbijdeoverheid.nl/",
+            "page_load_time": 0.46434617042541504
+        },
+        {
+            "url": "https://www.netherlandsworldwide.nl/",
+            "page_load_time": 0.5212562084197998
+        },
+        {
+            "url": "https://www.dsta.nl/",
+            "page_load_time": 0.9042336940765381
+        },
+        {
+            "url": "https://www.nldigitalgovernment.nl/",
+            "page_load_time": 1.1291909217834473
+        },
+        {
+            "url": "https://www.digid.nl/",
+            "page_load_time": 0.23508286476135254
+        },
+        {
+            "url": "https://www.rdw.nl/",
+            "page_load_time": 0.6112594604492188
+        }
+    ],
+    "page_load_times_block": [
+        {
+            "url": "https://www.government.nl/",
+            "page_load_time": 0.44287109375
+        },
+        {
+            "url": "https://business.gov.nl/",
+            "page_load_time": 0.7915048599243164
+        },
+        {
+            "url": "https://investinholland.com/",
+            "page_load_time": 3.140462875366211
+        },
+        {
+            "url": "https://www.belastingdienst.nl/",
+            "page_load_time": 0.6072146892547607
+        },
+        {
+            "url": "https://www.acm.nl/",
+            "page_load_time": 0.8071675300598145
+        },
+        {
+            "url": "https://english.rvo.nl/",
+            "page_load_time": 0.3186616897583008
+        },
+        {
+            "url": "https://www.nwo.nl/",
+            "page_load_time": 0.6538543701171875
+        },
+        {
+            "url": "https://www.knaw.nl/",
+            "page_load_time": 1.7066593170166016
+        },
+        {
+            "url": "https://www.octrooigemachtigde.nl/",
+            "page_load_time": 0.5200986862182617
+        },
+        {
+            "url": "https://ind.nl/",
+            "page_load_time": 0.645535945892334
+        },
+        {
+            "url": "https://www.cbs.nl/",
+            "page_load_time": 0.8271162509918213
+        },
+        {
+            "url": "https://www.werk.nl/",
+            "page_load_time": 0.9081051349639893
+        },
+        {
+            "url": "https://www.ser.nl/",
+            "page_load_time": 1.109745740890503
+        },
+        {
+            "url": "https://www.svb.nl/",
+            "page_load_time": 0.9178464412689209
+        },
+        {
+            "url": "https://www.uwv.nl/",
+            "page_load_time": 0.6142103672027588
+        },
+        {
+            "url": "https://www.nza.nl/",
+            "page_load_time": 0.37039732933044434
+        },
+        {
+            "url": "https://www.rivm.nl/",
+            "page_load_time": 0.7142989635467529
+        },
+        {
+            "url": "https://duo.nl/",
+            "page_load_time": 0.4282386302947998
+        },
+        {
+            "url": "https://www.studyinnl.org/",
+            "page_load_time": 0.5631630420684814
+        },
+        {
+            "url": "https://www.nbtc.nl/",
+            "page_load_time": 0.8282914161682129
+        },
+        {
+            "url": "https://www.government.nl/",
+            "page_load_time": 0.37508487701416016
+        },
+        {
+            "url": "https://www.museumserver.nl/",
+            "page_load_time": 1.8522181510925293
+        },
+        {
+            "url": "https://www.visitdrenthe.com/",
+            "page_load_time": 1.2820179462432861
+        },
+        {
+            "url": "https://www.defensie.nl/",
+            "page_load_time": 0.3744215965270996
+        },
+        {
+            "url": "https://www.fryslan.frl/",
+            "page_load_time": 0.5292930603027344
+        },
+        {
+            "url": "https://www.gelderland.nl/",
+            "page_load_time": 1.087984561920166
+        },
+        {
+            "url": "https://www.amsterdam.nl/",
+            "page_load_time": 0.6503510475158691
+        },
+        {
+            "url": "https://www.rotterdam.nl/",
+            "page_load_time": 0.23559236526489258
+        },
+        {
+            "url": "https://www.denhaag.nl/",
+            "page_load_time": 0.656010627746582
+        },
+        {
+            "url": "https://www.utrecht.nl/",
+            "page_load_time": 5.635500192642212
+        },
+        {
+            "url": "https://www.houseofrepresentatives.nl/",
+            "page_load_time": 0.48792386054992676
+        },
+        {
+            "url": "https://www.eerstekamer.nl/",
+            "page_load_time": 0.4009430408477783
+        },
+        {
+            "url": "https://www.overheid.nl/",
+            "page_load_time": 0.7145719528198242
+        },
+        {
+            "url": "https://www.provinciegroningen.nl/",
+            "page_load_time": 0.43962883949279785
+        },
+        {
+            "url": "https://www.limburg.nl/",
+            "page_load_time": 1.987320899963379
+        },
+        {
+            "url": "https://www.brabant.nl/",
+            "page_load_time": 0.8106420040130615
+        },
+        {
+            "url": "https://www.overijssel.nl/",
+            "page_load_time": 0.12958860397338867
+        },
+        {
+            "url": "https://www.provincie-utrecht.nl/",
+            "page_load_time": 0.8836193084716797
+        },
+        {
+            "url": "https://www.zeeland.nl/",
+            "page_load_time": 0.4077332019805908
+        },
+        {
+            "url": "https://www.zuid-holland.nl/",
+            "page_load_time": 1.6900837421417236
+        },
+        {
+            "url": "https://www.royal-house.nl/",
+            "page_load_time": 0.3939933776855469
+        },
+        {
+            "url": "https://www.rijksoverheid.nl/",
+            "page_load_time": 0.42226171493530273
+        },
+        {
+            "url": "https://www.werkenbijdeoverheid.nl/",
+            "page_load_time": 0.5905578136444092
+        },
+        {
+            "url": "https://www.netherlandsworldwide.nl/",
+            "page_load_time": 0.5291750431060791
+        },
+        {
+            "url": "https://www.dsta.nl/",
+            "page_load_time": 0.749046802520752
+        },
+        {
+            "url": "https://www.nldigitalgovernment.nl/",
+            "page_load_time": 1.07411527633667
+        },
+        {
+            "url": "https://www.digid.nl/",
+            "page_load_time": 0.24559402465820312
+        },
+        {
+            "url": "https://www.rdw.nl/",
+            "page_load_time": 0.6222078800201416
+        }
+    ]
+}
