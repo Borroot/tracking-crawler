@@ -147,18 +147,19 @@ def block_tracker_requests(route, request, block_list):
 
 
 def load_block_list():
-    block_list = []
     with open("../utils/services.json", "r", encoding="utf-8") as f:
         blocklist_data = json.load(f)
 
-    for category in blocklist_data['categories']['Email']:
-        for key, value in category.items():
-            if isinstance(value, dict):
-                for inner_key, domain in value.items():
-                    if isinstance(domain, list):
-                        block_list.extend(domain)
+    block_list = []
 
-    return block_list
+    for category_name, category_data in blocklist_data['categories'].items():
+        for entry in category_data:
+            for _company_name, domains in entry.items():
+                for _domain, block_domains in domains.items():
+                    if isinstance(block_domains, list):
+                        block_list.extend(block_domains)
+
+    return list(set(block_list))
 
 
 def crawler(playwright, url, block_trackers, stats_crawler, url_index):
@@ -271,3 +272,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
