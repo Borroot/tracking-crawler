@@ -35,8 +35,8 @@ class StatisticsCrawler:
                 return list(obj)
             return obj
 
-        timestamp = str(datetime.datetime.now())
-        with open(f"../analysis/stats-{timestamp}.json", "w") as file:
+        # timestamp = str(datetime.datetime.now())
+        with open(f"../analysis/stats.json", "w") as file:
             json.dump(self.stats, file, indent=4, default=convert_to_serializable)
 
 
